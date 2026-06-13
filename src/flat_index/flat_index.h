@@ -1,7 +1,7 @@
 #ifndef HNSW_SRC_FLAT_INDEX_H_
 #define HNSW_SRC_FLAT_INDEX_H_
 
-#include "src/vector_base/vector_base.h"
+#include "../vector_base/vector_base.h"
 
 #include <vector>
 
@@ -46,7 +46,7 @@ class FlatIndex {
          */
 
         const std::vector<vector_base::VectorBase*>& GetData() const;
-        void AddData(const vector_base::VectorBase& vector_pointer);
+        void AddData(const vector_base::VectorBase& vector_reference);
 
         /**
          * Search:
