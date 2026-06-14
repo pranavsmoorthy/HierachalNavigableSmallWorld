@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <cmath>
 
-namespace hierarchial_navigable_small_world {
+namespace hnsw {
 namespace vector_base {
 
 /**

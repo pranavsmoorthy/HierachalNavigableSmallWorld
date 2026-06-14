@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <queue>
 
-namespace hierarchial_navigable_small_world {
+namespace hnsw {
 namespace flat_index {
 
 /**
