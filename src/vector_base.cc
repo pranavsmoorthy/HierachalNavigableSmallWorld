@@ -1,4 +1,4 @@
-#include "../include/vector_base.h"
+#include "../include/hnsw/vector_base.h"
 
 #include <vector>
 #include <stdexcept>

@@ -1,7 +1,7 @@
 #ifndef HNSW_SRC_FLAT_INDEX_H_
 #define HNSW_SRC_FLAT_INDEX_H_
 
-#include "../include/vector_base.h"
+#include "vector_base.h"
 
 #include <vector>
 
