@@ -1,5 +1,5 @@
-#ifndef HNSW_SRC_FLAT_INDEX_H_
-#define HNSW_SRC_FLAT_INDEX_H_
+#ifndef HNSW_EXCEPTIONS_FLAT_INDEX_H_
+#define HNSW_EXCEPTIONS_FLAT_INDEX_H_
 
 #include "vector_base.h"
 
