@@ -210,6 +210,16 @@ class VectorBase {
             return std::sqrt(squared_distance);
         }
 
+        double EuclideanDistanceTo(std::array<DistanceType, Dimensions>&& other) {
+            double squared_distance = 0.0;
+
+            for (std::size_t i = 0; i < Dimensions ; i++) {
+                squared_distance += (coords_[i] - other[i]) * (coords_[i] - other[i]);
+            }
+
+            return std::sqrt(squared_distance);
+        }
+
         /**
          * Cosine Similarity:
          * Returns the cosine similarity of two vectors
