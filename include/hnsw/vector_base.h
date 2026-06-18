@@ -135,7 +135,8 @@ class VectorBase {
                 result_coords[i] = coords_[i] - other[i];
             }
 
-            return VectorBase<DataType, DistanceType, Dimensions>(result_coords, data_);
+            return VectorBase<DataType, DistanceType, Dimensions>(
+                result_coords, data_);
         }
 
         /**
@@ -143,7 +144,7 @@ class VectorBase {
          * Used for set organization, compares the length of the two vectors
          */
         bool operator<(
-            const VectorBase<DataType, DistanceType, Dimensions>& other) const {
+            const VectorBase& other) const {
                 return Length() < other.Length();
         }
 
