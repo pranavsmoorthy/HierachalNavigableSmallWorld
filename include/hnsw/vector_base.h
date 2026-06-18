@@ -11,11 +11,11 @@ namespace vector_base {
 
 namespace exceptions {
 
-void ThrowIndexOutOfRangeException() {
+inline void ThrowIndexOutOfRangeException() {
     throw std::out_of_range("Index is out of bounds");
 }
 
-void ThrowZeroLengthException() {
+inline void ThrowZeroLengthException() {
     throw std::logic_error("One or more vectors' length is 0");
 }
 

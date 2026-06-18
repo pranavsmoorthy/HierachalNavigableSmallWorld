@@ -55,19 +55,15 @@ class Node {
          * Adds the data and adjacency list of this Node with that of the other
          * Node and deletes the other Node's properties
          */
-        Node(Node&& other) noexcept : data_(*other.data_) {
-            delete other.data_;
+        Node(Node&& other) noexcept : 
+            data_(other.data_), 
+            adjacency_set_(std::move(other.adjacency_set_)) {
+                other.data_ = nullptr;
 
-            for (Node* n : adjacency_set_) {
-                n -> adjacency_set_.erase(&other);
-                n -> adjacency_set_.insert(this);
-            }
-
-            for (vector_base::VectorBase<DataType, DistanceType, Dimensions>* 
-                v : other.adjacency_set_) {
-                    adjacency_set_.insert(v);
-                    delete v;
-            }
+                for (Node* n : adjacency_set_) {
+                    n -> adjacency_set_.erase(&other);
+                    n -> adjacency_set_.insert(this);
+                }
         }
 
         /**
@@ -113,10 +109,10 @@ class Node {
          * Sets the data to what is given in the function
          */
         void SetData(
-            const vector_base::VectorBase<DataType, DistanceType, Dimensions>* 
+            vector_base::VectorBase<DataType, DistanceType, Dimensions>* 
             other) {
                 delete data_;
-                data_ = *other;
+                data_ = other;
         }
 
         /**
