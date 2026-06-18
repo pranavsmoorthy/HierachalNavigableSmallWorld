@@ -123,10 +123,8 @@ class Node {
          * Adjacency List Getter:
          * Returns a reference to the Node's adjacency set
          */
-        const std::set<vector_base::
-            VectorBase<DataType, DistanceType, Dimensions>*>& 
-            GetAdjacencySet() const {
-                return adjacency_set_;
+        const std::set<Node*>& 
+            GetAdjacencySet() const {return adjacency_set_;
         }
 
         //Adding and Removing Connections
