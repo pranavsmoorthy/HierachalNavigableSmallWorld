@@ -58,6 +58,11 @@ class Node {
         Node(Node&& other) noexcept : data_(*other.data_) {
             delete other.data_;
 
+            for (Node* n : adjacency_set_) {
+                n -> adjacency_set_.erase(&other);
+                n -> adjacency_set_.insert(this);
+            }
+
             for (vector_base::VectorBase<DataType, DistanceType, Dimensions>* 
                 v : other.adjacency_set_) {
                     adjacency_set_.insert(v);
@@ -74,26 +79,22 @@ class Node {
         Node<DataType, DistanceType, Dimensions, MaxConnections>& operator=(
             Node<DataType, DistanceType, Dimensions, MaxConnections>&& other) 
             noexcept {
-                if (*this == other) {
+                if (this == &other) {
                     return *this;
                 }
 
                 delete data_;
-
-                for (vector_base::VectorBase<
-                    DataType, DistanceType, Dimensions>* 
-                    v : adjacency_set_) {
-                        delete v;
+                for (Node* n : adjacency_set_) {
+                    n->adjacency_set_.erase(this);
                 }
 
                 data_ = other.data_;
-                delete other.data_;
+                adjacency_set_ = std::move(other.adjacency_set_);
+                other.data_ = nullptr;
 
-                for (vector_base::VectorBase<
-                    DataType, DistanceType, Dimensions>* 
-                    v : other.adjacency_set_) {
-                        adjacency_set_.insert(v);
-                        delete v;
+                for (Node* n : adjacency_set_) {
+                    n -> adjacency_set_.erase(&other);
+                    n -> adjacency_set_.insert(this);
                 }
 
                 return *this;
