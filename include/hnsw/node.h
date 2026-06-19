@@ -145,8 +145,8 @@ class Node {
          * Removes this node from other node's adjacency set, and vice versa
          */
         void SeverConnection(Node& other) {
-                adjacency_set_.erase(&other);
-                other.adjacency_set_.erase(this);
+            adjacency_set_.erase(&other);
+            other.adjacency_set_.erase(this);
         }
 
     private:

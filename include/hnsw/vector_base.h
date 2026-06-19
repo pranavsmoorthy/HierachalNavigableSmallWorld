@@ -29,6 +29,9 @@ class VectorBase {
     static_assert(std::is_arithmetic<DistanceType>::value, 
         "Error: VectorBase can only hold numeric types (int, float, double).");
 
+    static_assert(Dimensions != 0, 
+        "Error: Coordinate must have non zero number of dimensions");
+
     public:
         //Constructors
         /**
