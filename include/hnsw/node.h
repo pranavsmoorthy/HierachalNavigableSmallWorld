@@ -22,7 +22,7 @@ namespace exceptions {
  */
 template <typename DataType, typename DistanceType, std::size_t Dimensions,
     std::size_t MaxConnections>
-class Node {
+class Node {    
     public:
         //Constructor
         /**

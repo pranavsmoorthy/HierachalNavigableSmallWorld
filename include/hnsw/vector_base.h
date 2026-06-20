@@ -32,6 +32,8 @@ class VectorBase {
     static_assert(Dimensions != 0, 
         "Error: Coordinate must have non zero number of dimensions");
 
+    using CoordinateArray = std::array<DistanceType, Dimensions>;
+
     public:
         //Constructors
         /**
@@ -116,7 +118,7 @@ class VectorBase {
          * first data point and discards the second.
          */
         VectorBase operator+(const VectorBase& other) const {
-            std::array<DistanceType, Dimensions> result_coords;
+            CoordinateArray result_coords;
 
             for (std::size_t i = 0; i < Dimensions; i++) {
                 result_coords[i] = coords_[i] + other[i];
@@ -132,7 +134,7 @@ class VectorBase {
          * the first data point and discards the second.
          */
         VectorBase operator-(const VectorBase& other) const {
-            std::array<DistanceType, Dimensions> result_coords; 
+            CoordinateArray result_coords; 
 
             for (std::size_t i = 0; i < Dimensions ; i++) {
                 result_coords[i] = coords_[i] - other[i];

@@ -17,6 +17,8 @@ namespace flat_index {
  */
 template <typename DataType, typename DistanceType, std::size_t Dimensions>
 class FlatIndex {
+    using VectorBaseType = vector_base::VectorBase<DataType, DistanceType, Dimensions>;
+
     public:
         //Default Constructor
         FlatIndex() {}
@@ -28,9 +30,8 @@ class FlatIndex {
          * memory
          */
         ~FlatIndex() {
-            for (vector_base::VectorBase<DataType, DistanceType, Dimensions>* v 
-                : data_) {
-                    delete v;
+            for (VectorBaseType* v : data_) {
+                delete v;
             }
         }
 
@@ -43,10 +44,8 @@ class FlatIndex {
         FlatIndex(const FlatIndex& other) {
             data_.reserve(other.data_.size());
 
-            for (vector_base::VectorBase<DataType, DistanceType, Dimensions>* v 
-                : other.data_) {
-                    data_.push_back(new vector_base::
-                        VectorBase<DataType, DistanceType, Dimensions>(*v));
+            for (VectorBaseType* v : other.data_) {
+                data_.push_back(new VectorBaseType(*v));
             }
         }
 
@@ -61,17 +60,14 @@ class FlatIndex {
                 return *this;
             }
 
-            for (vector_base::
-                VectorBase<DataType, DistanceType, Dimensions>* v : data_) {
-                    delete v;
+            for (VectorBaseType* v : data_) {
+                delete v;
             }
 
             data_.clear();
 
-            for (vector_base::
-                VectorBase<DataType, DistanceType, Dimensions>* v : other.data_) {
-                    data_.push_back(new vector_base::
-                        VectorBase<DataType, DistanceType, Dimensions>(*v));
+            for (VectorBaseType* v : other.data_) {
+                data_.push_back(new VectorBaseType(*v));
             }
 
             return *this;
@@ -96,8 +92,7 @@ class FlatIndex {
                 return *this;
             }
 
-            for (vector_base::
-                VectorBase<DataType, DistanceType, Dimensions>* v : data_) {
+            for (VectorBaseType* v : data_) {
                 delete v;
             }
 
@@ -111,9 +106,8 @@ class FlatIndex {
          * Data Getter:
          * Returns data vector
          */
-        const std::vector<vector_base::
-            VectorBase<DataType, DistanceType, Dimensions>*>& GetData() const {
-                return data_;
+        const std::vector<VectorBaseType*>& GetData() const {
+            return data_;
         }
 
         /**
@@ -134,9 +128,7 @@ class FlatIndex {
         void AddData(
             const vector_base::VectorBase<DataType, DistanceType, Dimensions>& 
             vector_reference) {
-                data_.push_back(new vector_base::
-                    VectorBase<DataType, DistanceType, Dimensions>(
-                        vector_reference));
+                data_.push_back(new VectorBaseType(vector_reference));
         }
 
         /**
@@ -151,12 +143,9 @@ class FlatIndex {
                     return {};
                 }
 
-                std::priority_queue<std::pair<
-                    double, vector_base::VectorBase<
-                        DataType, DistanceType, Dimensions>*>> queue;
+                std::priority_queue<std::pair<double, VectorBaseType*>> queue;
 
-                for (vector_base::VectorBase<DataType, DistanceType, Dimensions>* 
-                    v : data_) {
+                for (VectorBaseType* v : data_) {
                         double distance = v -> EuclideanDistanceTo(query);
                         queue.push({distance, v});
 
