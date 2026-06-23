@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <algorithm>
 #include <stdexcept>
+#include <vector>
+#include <queue>
 
 namespace vectorforge {
 namespace node {
@@ -148,6 +150,73 @@ class Node {
         void SeverConnection(Node& other) {
             adjacency_set_.erase(&other);
             other.adjacency_set_.erase(this);
+        }
+
+        /**
+         * AtConnectionLimit:
+         * Returns if the node has the max connections
+         */
+        boolean AtConnectionLimit() {
+            return adjacency_set_.size() >= MaxConnections;
+        }
+
+        /**
+         * 
+         */
+        std::vector<Node*> LookForRemovableNodes(Node* new_node) {
+            std::vector<Node*> removable_nodes;
+
+            if (adjacency_set_.size() < MaxConnections) {
+                return removable_nodes;
+            }
+
+            std::vector<Node*> kept_nodes;
+            std::priority_queue<std::pair<double, Node*>> distance_queue;
+            distance_queue.push({data_ -> EuclideanDistanceTo((new_node -> GetData()).GetCoords()), new_node});
+
+            for (Node* n : adjacency_set_) {
+                distance_queue.push({n -> EuclideanDistanceTo((n -> GetData()).GetCoords()), n});
+            }
+
+            std::vector<Node*> sorted_node_vector;
+
+            while (!distance_queue.empty()) {
+                sorted_node_vector.push_back(distance_queue.top().second);
+                distance_queue.pop();
+            }
+
+            kept_nodes.push_back(sorted_node_vector.back());
+            sorted_node_vector.pop_back();
+
+            while (!sorted_node_vector.empty()) {
+                Node* candidate = sorted_node_vector.back();
+                sorted_node_vector.pop_back();
+
+                bool can_remove = false;
+
+                if (kept_nodes.size() >= MaxConnections) {
+                    can_remove = true;
+                } else {
+                    // Diversity Check
+                    for (Node* kept_node : kept_nodes) {
+                        double dist_to_kept = candidate->GetData().EuclideanDistanceTo(kept_node->GetData());
+                        double dist_to_hub = data_->EuclideanDistanceTo(candidate->GetData());
+                        
+                        if (dist_to_kept < dist_to_hub) {
+                            can_remove = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (can_remove) {
+                    removable_nodes.push_back(candidate);
+                } else {
+                    kept_nodes.push_back(candidate);
+                }
+            }
+
+            return removable_nodes;
         }
 
     private:
