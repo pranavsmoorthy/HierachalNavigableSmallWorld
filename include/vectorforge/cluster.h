@@ -177,8 +177,6 @@ class Cluster {
         void AddConnection(Cluster& other) {
             adjacency_set_.insert(&other);
             other.adjacency_set_.insert(this);
-
-            //Rest
         }
 
         /**
@@ -205,6 +203,14 @@ class Cluster {
             if (head_ == nullptr) {
                 head_ = node;
                 return isolated_nodes;
+            }
+
+            NodeType* closest_existing = FindNearestNode(node->GetData().GetCoords());
+            if (closest_existing != nullptr) {
+                double distance = closest_existing->GetData().EuclideanDistanceTo(node->GetData().GetCoords());
+                if (distance < 1e-9) { 
+                    exceptions::ThrowNodeWithCoordExist();
+                }
             }
 
             std::vector<NodeType*> nearest_k_nodes = FindNearestKNodes((node -> GetData()).GetCoords(), MaxConnectionsForNodes);
