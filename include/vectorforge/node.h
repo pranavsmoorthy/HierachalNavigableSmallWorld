@@ -126,6 +126,14 @@ class Node {
                 return adjacency_set_;
         }
 
+        /**
+         * Coordinate Getter:
+         * Returns the coordinate of the node's coordinates
+         */
+        const std::array<DistanceType, Dimensions>& GetCoords() const {
+            return data_ -> GetCoords();
+        }
+
         //Adding and Removing Connections
         /**
          * Add Connections: 
@@ -158,6 +166,23 @@ class Node {
          */
         bool AtConnectionLimit() {
             return adjacency_set_.size() >= MaxConnections;
+        }
+
+        /**
+         * Distance to Other Node:
+         * Returns distance to another node
+         */
+        double DistanceToNode(Node* other) {
+            return data_ -> EuclideanDistanceTo(other -> data_ -> coords_);
+        }
+
+        /**
+         * Distance to Coords:
+         * Returns distance to a set of coordinates
+         */
+        double DistanceToCoords(
+            const std::array<DistanceType, Dimensions>& other) {
+                return data_ -> EuclideanDistanceTo(other);
         }
 
 
