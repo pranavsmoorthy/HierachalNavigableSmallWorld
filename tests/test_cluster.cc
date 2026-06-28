@@ -115,7 +115,7 @@ TEST_CASE("Cluster: Multi-Node Search Routing", "[cluster]") {
 
     // Set Node A as the entry point for the cluster
     cluster.AddNode(nodeA);
-    
+
     // Manually link the nodes to form a traversable graph: A <-> B <-> C <-> D
     nodeA->AddConnection(nodeB);
     nodeB->AddConnection(nodeC);
@@ -144,5 +144,69 @@ TEST_CASE("Cluster: Multi-Node Search Routing", "[cluster]") {
         REQUIRE(k_results[0]->GetData().GetData() == "Node B"); // Closest
         REQUIRE(k_results[1]->GetData().GetData() == "Node C"); // 2nd Closest
         REQUIRE(k_results[2]->GetData().GetData() == "Node A"); // 3rd Closest
+    }
+}
+
+
+TEST_CASE("Cluster: Dynamic AddNode Connection Logic", "[cluster]") {
+    TestCluster cluster;
+
+    TestNode* nodeA = new TestNode(new TestVector({0.0, 0.0}, "Node A (Head)"));
+    TestNode* nodeB = new TestNode(new TestVector({2.0, 2.0}, "Node B"));
+    TestNode* nodeC = new TestNode(new TestVector({2.1, 2.1}, "Node C"));
+
+    SECTION("Connecting to an empty cluster") {
+        // Adding head node should not return any isolated nodes
+        REQUIRE(cluster.AddNode(nodeA).empty());
+        REQUIRE(cluster.GetHeadNode() == nodeA);
+    }
+
+    SECTION("Connecting to a populated cluster (Multiple K-NN Links)") {
+        cluster.AddNode(nodeA);
+        
+        REQUIRE(cluster.AddNode(nodeB).empty());
+        REQUIRE(nodeB->GetAdjacencySet().count(nodeA) == 1);
+
+        // Node C should connect to BOTH A and B without causing isolation
+        REQUIRE(cluster.AddNode(nodeC).empty());
+        
+        REQUIRE(nodeC->GetAdjacencySet().count(nodeB) == 1); // Closest
+        REQUIRE(nodeC->GetAdjacencySet().count(nodeA) == 1); // Second closest
+        
+        REQUIRE(nodeB->GetAdjacencySet().count(nodeC) == 1);
+        REQUIRE(nodeA->GetAdjacencySet().count(nodeC) == 1);
+    }
+
+    SECTION("Connecting to a full cluster triggers Routability Test (The Island Effect)") {
+        // Setup a fully connected clique of 4 nodes (MaxConnections is 3)
+        cluster.AddNode(nodeA); // (0.0, 0.0)
+        cluster.AddNode(nodeB); // (2.0, 2.0)
+        cluster.AddNode(nodeC); // (2.1, 2.1)
+
+        TestNode* nodeD = new TestNode(new TestVector({10.0, 10.0}, "Node D (Outlier)"));
+        REQUIRE(cluster.AddNode(nodeD).empty());
+
+        // At this point, A, B, C, and D all have exactly 3 connections. They are completely full!
+        REQUIRE(nodeA->GetAdjacencySet().size() == 3);
+        REQUIRE(nodeD->GetAdjacencySet().size() == 3);
+
+        // Insert Node E right into the middle of the A-B-C dense cluster
+        TestNode* nodeE = new TestNode(new TestVector({1.0, 1.0}, "Node E"));
+        
+        // E will connect to its 3 nearest neighbors (A, B, C).
+        // Since A, B, C are full, they must bidirectionally sever their FURTHEST connection (Node D).
+        // Because D is completely severed, the Routability Test will fail to find it,
+        // and AddNode MUST return D in the isolated_nodes vector!
+        std::vector<TestNode*> isolated_nodes = cluster.AddNode(nodeE);
+
+        // Verify the Island was caught!
+        REQUIRE(isolated_nodes.size() == 1);
+        REQUIRE(isolated_nodes[0] == nodeD);
+        
+        // Verify D is truly isolated
+        REQUIRE(nodeD->GetAdjacencySet().empty());
+        
+        // Verify E successfully integrated
+        REQUIRE(nodeE->GetAdjacencySet().size() == 3);
     }
 }

@@ -192,19 +192,58 @@ class Cluster {
 
         /**
          * Add Node:
-         * First, the program performs a greedy 
+         * Adds a node to the graph. Returns a vector containing pointers to 
+         * isolated nodes / groups of nodes
          */
-        bool AddNode(node::Node<DataType, DistanceType, Dimensions, MaxConnectionsForNodes>* node) {
+        std::vector<NodeType*> AddNode(NodeType* node) {
             if ((node -> GetAdjacencySet()).size() != 0) {
                 exceptions::ThrowNodeExistsInGraph();
             }
 
+            std::vector<NodeType*> isolated_nodes;
+
             if (head_ == nullptr) {
                 head_ = node;
-                return true;
+                return isolated_nodes;
             }
 
-            return false;
+            std::vector<NodeType*> nearest_k_nodes = FindNearestKNodes((node -> GetData()).GetCoords(), MaxConnectionsForNodes);
+            bool connection_severed = false;
+
+            for (NodeType* n : nearest_k_nodes) {
+                if (n -> AtConnectionLimit()) {
+                    std::unordered_set<NodeType*> node_adjacency_set = n -> GetAdjacencySet();
+                    NodeType* furthest_node = nullptr;
+                    double max_distance = 0.0;
+
+                    for (NodeType* a : node_adjacency_set) {
+                        double current_distance = (n -> GetData()).EuclideanDistanceTo((a -> GetData()).GetCoords());
+
+                        if (current_distance > max_distance) {
+                            max_distance = current_distance;
+                            furthest_node = a;
+                        }
+                    }
+
+                    n -> SeverConnection(furthest_node);
+
+                    if (!connection_severed) {
+                        connection_severed = true;
+                    }
+
+                    if (std::find(isolated_nodes.begin(), isolated_nodes.end(), furthest_node) == isolated_nodes.end() && furthest_node != FindNearestNode((furthest_node -> GetData()).GetCoords())) {
+                        isolated_nodes.push_back(furthest_node);
+                    }
+                }
+                
+                node -> AddConnection(n);
+            }
+
+            if (connection_severed && node != FindNearestNode((node -> GetData()).GetCoords())) {
+                isolated_nodes.push_back(node);
+            }
+
+            return isolated_nodes;
         }
 
     private:

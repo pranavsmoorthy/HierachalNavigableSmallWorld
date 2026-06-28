@@ -46,7 +46,7 @@ TEST_CASE("Node: Adding and Severing Connections", "[node]") {
         REQUIRE(nodeB.GetAdjacencySet().count(&nodeA) == 1);
 
         // Severing the connection should remove the pointers from both sets
-        nodeA.SeverConnection(nodeB);
+        nodeA.SeverConnection(&nodeB);
         REQUIRE(nodeA.GetAdjacencySet().empty());
         REQUIRE(nodeB.GetAdjacencySet().empty());
     }
