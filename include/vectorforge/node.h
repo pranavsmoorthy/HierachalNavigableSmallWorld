@@ -183,12 +183,28 @@ class Node {
             if (!dead_) {
                 dead_ = true;
 
-                delete data_;
-                data_ = nullptr;
-
                 if (adjacency_set_.empty()) {
                     delete this;
+                } else {
+                    for (Node* n : adjacency_set_) {
+                        if (!(n -> dead_)) {
+                            return;
+                        }
+                    }
+
+                    delete this;
                 }
+            }
+        }
+
+        /**
+         * Resurrect Node:
+         * Resurrects a node from dead state and sets the data
+         */
+        void ResurrectNode(DataType data) {
+            if (dead_) {
+                dead_ = false;
+                data_ -> SetData(data);
             }
         }
 
