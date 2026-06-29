@@ -140,9 +140,21 @@ class Node {
          * Adjacency List Getter:
          * Returns a reference to the Node's adjacency set
          */
-        const std::unordered_set<Node*>& 
-            GetAdjacencySet() const {
-                return adjacency_set_;
+        const std::unordered_set<Node*>& GetAdjacencySet(
+            bool include_dead_nodes = false) const {
+                if (include_dead_nodes) {
+                    return adjacency_set_;
+                } else {
+                    std::unordered_set<Node*> node_set;
+
+                    for (Node* n : adjacency_set_) {
+                        if (!(n -> dead_)) {
+                            node_set.insert(n);
+                        }
+                    }
+
+                    return node_set;
+                }
         }
 
         /**
@@ -170,7 +182,7 @@ class Node {
         void MarkDead() {
             if (!dead_) {
                 dead_ = true;
-                
+
                 delete data_;
                 data_ = nullptr;
 
@@ -209,11 +221,11 @@ class Node {
             adjacency_set_.erase(other);
             other -> adjacency_set_.erase(this);
 
-            if ((other -> adjacency_set_).empty() || other -> dead_) {
+            if ((other -> adjacency_set_).empty() && other -> dead_) {
                 delete other;
             }
 
-            if (adjacency_set_.empty() || dead_) {
+            if (adjacency_set_.empty() && dead_) {
                 delete this;
             }
         }
