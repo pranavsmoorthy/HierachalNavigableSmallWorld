@@ -114,7 +114,7 @@ class Node {
         //Getters and Setters
         /**
          * Data Getter
-         * Returns the vector base that the Node holds
+         * Returns the data value that the Node holds
          */
         const DataType& GetData() const {
             if (dead_) {
@@ -140,21 +140,8 @@ class Node {
          * Adjacency List Getter:
          * Returns a reference to the Node's adjacency set
          */
-        const std::unordered_set<Node*>& GetAdjacencySet(
-            bool include_dead_nodes = false) const {
-                if (include_dead_nodes) {
-                    return adjacency_set_;
-                } else {
-                    std::unordered_set<Node*> node_set;
-
-                    for (Node* n : adjacency_set_) {
-                        if (!(n -> dead_)) {
-                            node_set.insert(n);
-                        }
-                    }
-
-                    return node_set;
-                }
+        const std::unordered_set<Node*>& GetAdjacencySet() const {
+            return adjacency_set_;
         }
 
         /**

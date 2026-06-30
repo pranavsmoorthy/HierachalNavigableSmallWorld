@@ -65,17 +65,25 @@ class Cluster {
                 NodeType* current_node = head_;
                 std::unordered_set<NodeType*> node_set;
                 
+                NodeType* best_alive_node = nullptr;
+                double best_alive_distance = 0.0; 
+                
                 while (true) {
-                    double current_distance = 
-                        current_node -> DistanceToCoords(query_coordinates);
-                        
+                    double current_distance = current_node->DistanceToCoords(query_coordinates);
+                    
+                    if (!current_node->IsDead()) {
+                        if (best_alive_node == nullptr || current_distance < best_alive_distance) {
+                            best_alive_distance = current_distance;
+                            best_alive_node = current_node;
+                        }
+                    }
+
                     NodeType* nearest_in_adjacent = nullptr;
 
-                    for (NodeType* n : current_node -> GetAdjacencySet()) {
-                        double distance_to_query = 
-                            n -> DistanceToCoords(query_coordinates);
-
+                    for (NodeType* n : current_node->GetAdjacencySet()) {
                         if (node_set.count(n) == 0) {
+                            double distance_to_query = n->DistanceToCoords(query_coordinates);
+
                             if (distance_to_query < current_distance) {
                                 current_distance = distance_to_query;
                                 nearest_in_adjacent = n;
@@ -84,7 +92,7 @@ class Cluster {
                     }
 
                     if (nearest_in_adjacent == nullptr) {
-                        return current_node;
+                        return best_alive_node;
                     } else {
                         node_set.insert(current_node);
                         current_node = nearest_in_adjacent;
@@ -131,15 +139,17 @@ class Cluster {
                             double distance_to_query = 
                                 n -> DistanceToCoords(query_coordinates);
 
-                            node_queue.push({distance_to_query, n});
+                            if (!(n -> IsDead())) {
+                                node_queue.push({distance_to_query, n});
 
-                            if (node_queue.size() > k) {
-                                node_queue.pop();
-                            }
+                                if (node_queue.size() > k) {
+                                    node_queue.pop();
+                                }
 
-                            if (distance_to_query < current_distance) {
-                                current_distance = distance_to_query;
-                                nearest_in_adjacent = n;
+                                if (distance_to_query < current_distance) {
+                                    current_distance = distance_to_query;
+                                    nearest_in_adjacent = n;
+                                }
                             }
 
                             node_set.insert(n);
@@ -224,6 +234,11 @@ class Cluster {
                 double distance = closest_existing -> DistanceToNode(node);
 
                 if (distance < 1e-9) { 
+                    if (closest_existing -> IsDead()) {
+                        closest_existing -> ResurrectNode(node -> GetData());
+                        return isolated_nodes;
+                    }
+
                     exceptions::ThrowNodeWithCoordExist();
                 }
             }
