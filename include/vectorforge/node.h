@@ -172,6 +172,7 @@ class Node {
 
                 if (adjacency_set_.empty()) {
                     delete this;
+                    return;
                 } else {
                     for (Node* n : adjacency_set_) {
                         if (!(n -> dead_)) {
@@ -232,6 +233,7 @@ class Node {
 
             if (adjacency_set_.empty() && dead_) {
                 delete this;
+                return;
             }
         }
 

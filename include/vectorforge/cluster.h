@@ -50,7 +50,7 @@ class Cluster {
          * lead to the entire graph getting deleted.
          */
         ~Cluster() {
-            delete head_;
+            head_ = nullptr;
         }
 
         Cluster(const Cluster& other) = delete;
@@ -313,6 +313,7 @@ class Cluster {
 
                         if (node_set.empty()) {
                             delete this;
+                            return;
                         }
 
                         for (NodeType* n : node_set) {
@@ -321,8 +322,6 @@ class Cluster {
                             }
                         }
                     }
-
-                    existing_node -> MarkDead();
 
                 existing_node -> MarkDead();
             } else {
@@ -341,6 +340,7 @@ class Cluster {
 
                             if (node_set.empty()) {
                                 delete this;
+                                return;
                             }
 
                             for (NodeType* n : node_set) {

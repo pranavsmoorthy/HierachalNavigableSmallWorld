@@ -268,39 +268,112 @@ TEST_CASE("Cluster: Dynamic AddNode Connection Logic", "[cluster]") {
     }
 }
 
-TEST_CASE("Cluster: DeleteNode (Soft Deletion by Coordinates)", "[cluster]") {
+TEST_CASE("Cluster: Optional Dead Node Inclusion in Search", "[cluster]") {
     TestCluster cluster;
 
     TestNode* nodeA = new TestNode(new TestVector({0.0, 0.0}, "Origin"));
-    TestNode* nodeB = new TestNode(new TestVector({5.0, 5.0}, "Target Node"));
+    TestNode* nodeB = new TestNode(new TestVector({2.0, 2.0}, "Bridge"));
+    TestNode* nodeC = new TestNode(new TestVector({4.0, 4.0}, "Destination"));
+
+    // Add nodes linearly
+    cluster.AddNode(nodeA);
+    cluster.AddNode(nodeB);
+    cluster.AddNode(nodeC);
+
+    // Mark the middle node as dead
+    nodeB->MarkDead();
+
+    SECTION("Default search excludes dead nodes (Soft Deletion)") {
+        // Query exactly at nodeB's location
+        std::array<double, 2> query = {2.0, 2.0};
+        
+        // Because include_dead_nodes defaults to false, it should completely ignore B
+        // and return one of the alive nodes (A or C).
+        TestNode* result = cluster.FindNearestNode(query); 
+        
+        REQUIRE(result != nullptr);
+        REQUIRE(result->IsDead() == false);
+        REQUIRE(result != nodeB);
+    }
+
+    SECTION("Search with include_dead_nodes = true successfully returns dead nodes") {
+        std::array<double, 2> query = {2.0, 2.0};
+        
+        // Explicitly pass true for the include_dead_nodes flag
+        TestNode* result = cluster.FindNearestNode(query, true);
+        
+        // The search should now "see" B as a valid endpoint and return it!
+        REQUIRE(result != nullptr);
+        REQUIRE(result->IsDead() == true);
+        REQUIRE(result == nodeB);
+    }
+}
+
+TEST_CASE("Cluster: Coordinate-Based DeleteNode & Head Reassignment", "[cluster]") {
+    TestCluster cluster;
+
+    TestNode* nodeA = new TestNode(new TestVector({0.0, 0.0}, "Origin (Head)"));
+    TestNode* nodeB = new TestNode(new TestVector({5.0, 5.0}, "Alive Neighbor"));
+    TestNode* nodeC = new TestNode(new TestVector({-5.0, -5.0}, "Dead Neighbor"));
 
     cluster.AddNode(nodeA);
     cluster.AddNode(nodeB);
+    cluster.AddNode(nodeC);
 
-    SECTION("Successfully deletes (marks dead) an existing node") {
+    // Pre-kill nodeC so we can test that the head_ reassignment ignores it
+    std::array<double, 2> coordsC = {-5.0, -5.0};
+    cluster.DeleteNode(coordsC);
+    REQUIRE(nodeC->IsDead() == true);
+
+    SECTION("Successfully deletes a non-head node by coordinate") {
         REQUIRE(nodeB->IsDead() == false);
 
-        // Create a temporary node with the exact same coordinates to pass into DeleteNode
-        TestNode* queryNode = new TestNode(new TestVector({5.0, 5.0}, "Query"));
-        
-        cluster.DeleteNode(queryNode);
+        std::array<double, 2> query_coords = {5.0, 5.0};
+        cluster.DeleteNode(query_coords);
 
         // Verify that the actual node in the graph was correctly identified and marked dead
         REQUIRE(nodeB->IsDead() == true);
+    }
 
-        delete queryNode;
+    SECTION("Deleting the head node safely reassigns head to an ALIVE neighbor") {
+        REQUIRE(cluster.GetHeadNode() == nodeA);
+        REQUIRE(nodeA->IsDead() == false);
+
+        std::array<double, 2> head_coords = {0.0, 0.0};
+        cluster.DeleteNode(head_coords);
+
+        REQUIRE(nodeA->IsDead() == true);
+        
+        // The head must have been automatically reassigned to nodeB!
+        // Your logic successfully skipped nodeC because it was already dead.
+        REQUIRE(cluster.GetHeadNode() == nodeB);
+        REQUIRE(cluster.GetHeadNode()->IsDead() == false);
     }
 
     SECTION("Throws an exception when deleting a node that doesn't exist") {
-        // Because your threshold currently says 1e9 (1 billion), we put this dummy node 
-        // extremely far away (2 billion) to ensure it triggers the ThrowCouldNotFindNode exception!
-        // (If you fix your code to 1e-9, this test will still pass perfectly).
-        TestNode* farNode = new TestNode(new TestVector({2e9, 2e9}, "Far Node"));
+        std::array<double, 2> far_coords = {2e9, 2e9};
 
         // Use Catch2's REQUIRE_THROWS to catch your exceptions::ThrowCouldNotFindNode()
-        REQUIRE_THROWS(cluster.DeleteNode(farNode));
-
-        delete farNode;
+        REQUIRE_THROWS(cluster.DeleteNode(far_coords));
     }
+}
+
+TEST_CASE("Cluster: Self-Destruction on Empty Head Deletion", "[cluster]") {
+    // Because your DeleteNode calls `delete this;` when the head has no neighbors,
+    // we MUST allocate the cluster on the heap here to avoid a stack segmentation fault!
+    TestCluster* heap_cluster = new TestCluster();
+    
+    TestNode* lonelyNode = new TestNode(new TestVector({0.0, 0.0}, "Lonely Head"));
+    heap_cluster->AddNode(lonelyNode);
+
+    REQUIRE(heap_cluster->GetHeadNode() == lonelyNode);
+
+    std::array<double, 2> head_coords = {0.0, 0.0};
+    
+    // This will find the lonely node, see it has no neighbors, and trigger `delete this;`.
+    // If the test suite finishes without crashing, the self-deletion was successful!
+    heap_cluster->DeleteNode(head_coords); 
+    
+    // Safety Note: We cannot safely interact with 'heap_cluster' after this line.
 }
 
