@@ -182,6 +182,22 @@ class Cluster {
         }
 
         /**
+         * Find Exact Node:
+         * Finds exact node with given coordinates
+         */
+        NodeType* FindNearestNode(
+            const std::array<DistanceType, Dimensions>& query_coordinates,
+            bool include_dead_nodes = false) {
+                NodeType* existing_node = FindNearestNode(query_coordinates, include_dead_nodes);
+
+                if (existing_node -> DistanceToCoords(query_coordinates) > 1e-9) {
+                    exceptions::ThrowCouldNotFindNode();
+                }
+
+                return existing_node;
+        }
+
+        /**
          * Adjacency List Getter:
          * Returns a reference to the Cluster's adjacency set
          */
